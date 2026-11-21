@@ -13,6 +13,11 @@ struct ContentView: View {
     @State private var selectedImage: UIImage?
     @State private var errorMessage: String?
     @State private var isLoading = false
+    @State private var recognizedText = ""
+    @State private var ocrError: String?
+    @State private var isReading = false
+    @State private var imageID = UUID()
+    @State private var ocrTask: Task<Void, Never>?
 
     var body: some View {
         VStack(spacing: 24) {
@@ -49,11 +54,69 @@ struct ContentView: View {
             .controlSize(.large)
             .disabled(isLoading)
 
+            if selectedImage != nil {
+                Button(action: readText) {
+                    if isReading {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
+                    } else {
+                        Label("Metni Oku", systemImage: "text.viewfinder")
+                            .frame(maxWidth: .infinity)
+                            .fontWeight(.semibold)
+                    }
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .disabled(isLoading || isReading)
+            }
+
+            if let ocrError {
+                Text(ocrError)
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+                    .multilineTextAlignment(.center)
+            }
+
+            if !recognizedText.isEmpty {
+                textView
+            }
+
             Spacer()
         }
         .padding(24)
         .task(id: selectedItem) {
             await loadImage()
+        }
+        .onChange(of: selectedItem) {
+            clearRecognition()
+        }
+    }
+
+    private var textView: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Tanınan Metin")
+                    .font(.headline)
+
+                Spacer()
+
+                Button("Kopyala", systemImage: "doc.on.doc") {
+                    UIPasteboard.general.string = recognizedText
+                }
+                .buttonStyle(.bordered)
+            }
+
+            ScrollView {
+                Text(recognizedText)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .textSelection(.enabled)
+            }
+            .frame(maxHeight: 180)
+            .padding(12)
+            .background(
+                Color.secondary.opacity(0.08),
+                in: RoundedRectangle(cornerRadius: 12)
+            )
         }
     }
 
@@ -107,6 +170,49 @@ struct ContentView: View {
         } catch {
             errorMessage = "Fotoğraf yüklenirken bir hata oluştu. Lütfen tekrar deneyiniz."
         }
+    }
+
+    @MainActor
+    private func readText() {
+        guard let selectedImage else { return }
+
+        ocrTask?.cancel()
+
+        let currentID = imageID
+        isReading = true
+        recognizedText = ""
+        ocrError = nil
+
+        ocrTask = Task {
+            do {
+                let text = try await OCR.recognize(selectedImage)
+                guard !Task.isCancelled, currentID == imageID else { return }
+
+                if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    ocrError = "Fotoğrafta okunabilir metin bulunamadı."
+                } else {
+                    recognizedText = text
+                }
+            } catch is CancellationError {
+                return
+            } catch {
+                guard currentID == imageID else { return }
+                ocrError = "Metin okunurken bir hata oluştu. Lütfen tekrar deneyiniz."
+            }
+
+            guard currentID == imageID else { return }
+            isReading = false
+        }
+    }
+
+    @MainActor
+    private func clearRecognition() {
+        ocrTask?.cancel()
+        ocrTask = nil
+        imageID = UUID()
+        recognizedText = ""
+        ocrError = nil
+        isReading = false
     }
 }
 
