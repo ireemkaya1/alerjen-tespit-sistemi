@@ -8,6 +8,22 @@
 import SwiftUI
 import PhotosUI
 
+private enum TextResult: Identifiable {
+    case raw
+    case normalized
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .raw:
+            return "Tanınan Ham Metin"
+        case .normalized:
+            return "Normalize Edilmiş Metin"
+        }
+    }
+}
+
 struct ContentView: View {
     @State private var selectedItem: PhotosPickerItem?
     @State private var selectedImage: UIImage?
@@ -17,94 +33,104 @@ struct ContentView: View {
     @State private var isLoading = false
     @State private var prepError: String?
     @State private var isPreparing = false
-    @State private var recognizedText = ""
+    @State private var rawText = ""
+    @State private var normalizedText = ""
     @State private var ocrError: String?
     @State private var isReading = false
     @State private var imageID = UUID()
     @State private var ocrTask: Task<Void, Never>?
     @State private var prepTask: Task<Void, Never>?
+    @State private var activeResult: TextResult?
 
     var body: some View {
-        VStack(spacing: 24) {
-            Spacer()
+        GeometryReader { geometry in
+            ScrollView {
+                VStack(spacing: 24) {
+                    Spacer()
 
-            VStack(spacing: 8) {
-                Text("Alerjen Tespit Sistemi")
-                    .font(.largeTitle.bold())
-                    .multilineTextAlignment(.center)
+                    VStack(spacing: 8) {
+                        Text("Alerjen Tespit Sistemi")
+                            .font(.largeTitle.bold())
+                            .multilineTextAlignment(.center)
 
-                Text("Gıda etiketi fotoğrafı seçiniz.")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-            }
-
-            imageView
-
-            if selectedImage != nil {
-                Picker("Görüntü işleme", selection: $mode) {
-                    ForEach(ImageMode.allCases) { mode in
-                        Text(mode.title).tag(mode)
+                        Text("Gıda etiketi fotoğrafı seçiniz.")
+                            .font(.body)
+                            .foregroundStyle(.secondary)
                     }
-                }
-                .pickerStyle(.segmented)
-            }
 
-            if let errorMessage {
-                Text(errorMessage)
-                    .font(.footnote)
-                    .foregroundStyle(.red)
-                    .multilineTextAlignment(.center)
-            }
+                    imageView
 
-            if let prepError {
-                Text(prepError)
-                    .font(.footnote)
-                    .foregroundStyle(.red)
-                    .multilineTextAlignment(.center)
-            }
-
-            PhotosPicker(selection: $selectedItem, matching: .images) {
-                Label(
-                    selectedImage == nil ? "Fotoğraf Seç" : "Başka Fotoğraf Seç",
-                    systemImage: "photo.on.rectangle"
-                )
-                .frame(maxWidth: .infinity)
-                .fontWeight(.semibold)
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .disabled(isLoading)
-
-            if selectedImage != nil {
-                Button(action: readText) {
-                    if isReading {
-                        ProgressView()
-                            .frame(maxWidth: .infinity)
-                    } else {
-                        Label("Metni Oku", systemImage: "text.viewfinder")
-                            .frame(maxWidth: .infinity)
-                            .fontWeight(.semibold)
+                    if selectedImage != nil {
+                        Picker("Görüntü işleme", selection: $mode) {
+                            ForEach(ImageMode.allCases) { mode in
+                                Text(mode.title).tag(mode)
+                            }
+                        }
+                        .pickerStyle(.segmented)
                     }
+
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .font(.footnote)
+                            .foregroundStyle(.red)
+                            .multilineTextAlignment(.center)
+                    }
+
+                    if let prepError {
+                        Text(prepError)
+                            .font(.footnote)
+                            .foregroundStyle(.red)
+                            .multilineTextAlignment(.center)
+                    }
+
+                    PhotosPicker(selection: $selectedItem, matching: .images) {
+                        Label(
+                            selectedImage == nil ? "Fotoğraf Seç" : "Başka Fotoğraf Seç",
+                            systemImage: "photo.on.rectangle"
+                        )
+                        .frame(maxWidth: .infinity)
+                        .fontWeight(.semibold)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .disabled(isLoading)
+
+                    if selectedImage != nil {
+                        Button(action: readText) {
+                            if isReading {
+                                ProgressView()
+                                    .frame(maxWidth: .infinity)
+                            } else {
+                                Label("Metni Oku", systemImage: "text.viewfinder")
+                                    .frame(maxWidth: .infinity)
+                                    .fontWeight(.semibold)
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                        .disabled(isLoading || isPreparing || isReading || previewImage == nil)
+                    }
+
+                    if let ocrError {
+                        Text(ocrError)
+                            .font(.footnote)
+                            .foregroundStyle(.red)
+                            .multilineTextAlignment(.center)
+                    }
+
+                    if !rawText.isEmpty {
+                        VStack(spacing: 8) {
+                            resultRow(.raw)
+                            resultRow(.normalized)
+                        }
+                    }
+
+                    Spacer()
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
-                .disabled(isLoading || isPreparing || isReading || previewImage == nil)
+                .padding(24)
+                .frame(minHeight: geometry.size.height)
             }
-
-            if let ocrError {
-                Text(ocrError)
-                    .font(.footnote)
-                    .foregroundStyle(.red)
-                    .multilineTextAlignment(.center)
-            }
-
-            if !recognizedText.isEmpty {
-                textView
-            }
-
-            Spacer()
         }
-        .padding(24)
         .task(id: selectedItem) {
             await loadImage()
         }
@@ -112,33 +138,66 @@ struct ContentView: View {
             clearRecognition()
             prepareImage()
         }
+        .sheet(item: $activeResult) { result in
+            resultSheet(result)
+        }
     }
 
-    private var textView: some View {
-        VStack(alignment: .leading, spacing: 8) {
+    private func resultRow(_ result: TextResult) -> some View {
+        Button {
+            activeResult = result
+        } label: {
             HStack {
-                Text("Tanınan Metin")
-                    .font(.headline)
+                Text(result.title)
+                    .fontWeight(.semibold)
 
                 Spacer()
 
-                Button("Kopyala", systemImage: "doc.on.doc") {
-                    UIPasteboard.general.string = recognizedText
-                }
-                .buttonStyle(.bordered)
+                Image(systemName: "chevron.right")
+                    .foregroundStyle(.secondary)
             }
-
-            ScrollView {
-                Text(recognizedText)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .textSelection(.enabled)
-            }
-            .frame(maxHeight: 180)
-            .padding(12)
+            .padding(14)
+            .contentShape(Rectangle())
             .background(
                 Color.secondary.opacity(0.08),
                 in: RoundedRectangle(cornerRadius: 12)
             )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func resultSheet(_ result: TextResult) -> some View {
+        NavigationStack {
+            ScrollView {
+                Text(text(for: result))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .textSelection(.enabled)
+                    .padding()
+            }
+            .navigationTitle(result.title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Kapat") {
+                        activeResult = nil
+                    }
+                }
+
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Kopyala", systemImage: "doc.on.doc") {
+                        UIPasteboard.general.string = text(for: result)
+                    }
+                }
+            }
+        }
+    }
+
+    private func text(for result: TextResult) -> String {
+        switch result {
+        case .raw:
+            return rawText
+        case .normalized:
+            return normalizedText
         }
     }
 
@@ -149,11 +208,12 @@ struct ContentView: View {
                 .resizable()
                 .scaledToFit()
                 .clipShape(RoundedRectangle(cornerRadius: 16))
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(maxWidth: .infinity, maxHeight: 200)
                 .accessibilityLabel("Seçilen fotoğraf")
         } else if isPreparing {
             ProgressView("Görüntü hazırlanıyor...")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(maxWidth: .infinity)
+                .frame(height: 200)
         } else {
             ZStack {
                 RoundedRectangle(cornerRadius: 16)
@@ -190,7 +250,8 @@ struct ContentView: View {
 
         do {
             guard let data = try await selectedItem.loadTransferable(type: Data.self),
-                  let image = UIImage(data: data) else {
+                let image = UIImage(data: data)
+            else {
                 guard currentID == imageID else { return }
                 errorMessage = "Fotoğraf yüklenemedi. Lütfen başka bir fotoğraf seçiniz."
                 return
@@ -216,7 +277,9 @@ struct ContentView: View {
         let currentID = imageID
         let currentMode = mode
         isReading = true
-        recognizedText = ""
+        rawText = ""
+        normalizedText = ""
+        activeResult = nil
         ocrError = nil
 
         ocrTask = Task {
@@ -227,7 +290,8 @@ struct ContentView: View {
                 if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     ocrError = "Fotoğrafta okunabilir metin bulunamadı."
                 } else {
-                    recognizedText = text
+                    rawText = text
+                    normalizedText = TextPrep.normalize(text)
                 }
             } catch is CancellationError {
                 return
@@ -246,7 +310,9 @@ struct ContentView: View {
         ocrTask?.cancel()
         ocrTask = nil
         imageID = UUID()
-        recognizedText = ""
+        rawText = ""
+        normalizedText = ""
+        activeResult = nil
         ocrError = nil
         isReading = false
     }
