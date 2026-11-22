@@ -7,12 +7,14 @@ enum OCRError: Error {
 }
 
 struct OCR {
-    static func recognize(_ image: UIImage) async throws -> String {
-        guard let cgImage = image.cgImage else {
+    static func recognize(_ image: UIImage, mode: ImageMode) async throws -> String {
+        let processed = try await ImagePrep.process(image, mode: mode)
+
+        guard let cgImage = processed.cgImage else {
             throw OCRError.invalidImage
         }
 
-        let orientation = image.imageOrientation.cgOrientation
+        let orientation = processed.imageOrientation.cgOrientation
         let task = Task.detached(priority: .userInitiated) {
             try Task.checkCancellation()
 

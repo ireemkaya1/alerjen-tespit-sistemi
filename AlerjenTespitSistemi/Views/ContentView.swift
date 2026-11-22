@@ -11,13 +11,18 @@ import PhotosUI
 struct ContentView: View {
     @State private var selectedItem: PhotosPickerItem?
     @State private var selectedImage: UIImage?
+    @State private var previewImage: UIImage?
+    @State private var mode = ImageMode.original
     @State private var errorMessage: String?
     @State private var isLoading = false
+    @State private var prepError: String?
+    @State private var isPreparing = false
     @State private var recognizedText = ""
     @State private var ocrError: String?
     @State private var isReading = false
     @State private var imageID = UUID()
     @State private var ocrTask: Task<Void, Never>?
+    @State private var prepTask: Task<Void, Never>?
 
     var body: some View {
         VStack(spacing: 24) {
@@ -35,8 +40,24 @@ struct ContentView: View {
 
             imageView
 
+            if selectedImage != nil {
+                Picker("Görüntü işleme", selection: $mode) {
+                    ForEach(ImageMode.allCases) { mode in
+                        Text(mode.title).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
+
             if let errorMessage {
                 Text(errorMessage)
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+                    .multilineTextAlignment(.center)
+            }
+
+            if let prepError {
+                Text(prepError)
                     .font(.footnote)
                     .foregroundStyle(.red)
                     .multilineTextAlignment(.center)
@@ -67,7 +88,7 @@ struct ContentView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.large)
-                .disabled(isLoading || isReading)
+                .disabled(isLoading || isPreparing || isReading || previewImage == nil)
             }
 
             if let ocrError {
@@ -87,8 +108,9 @@ struct ContentView: View {
         .task(id: selectedItem) {
             await loadImage()
         }
-        .onChange(of: selectedItem) {
+        .onChange(of: mode) {
             clearRecognition()
+            prepareImage()
         }
     }
 
@@ -122,13 +144,16 @@ struct ContentView: View {
 
     @ViewBuilder
     private var imageView: some View {
-        if let selectedImage {
-            Image(uiImage: selectedImage)
+        if let previewImage {
+            Image(uiImage: previewImage)
                 .resizable()
                 .scaledToFit()
                 .clipShape(RoundedRectangle(cornerRadius: 16))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .accessibilityLabel("Seçilen fotoğraf")
+        } else if isPreparing {
+            ProgressView("Görüntü hazırlanıyor...")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             ZStack {
                 RoundedRectangle(cornerRadius: 16)
@@ -152,22 +177,32 @@ struct ContentView: View {
     private func loadImage() async {
         guard let selectedItem else { return }
 
+        resetImageState()
+        let currentID = imageID
         isLoading = true
         errorMessage = nil
 
-        defer { isLoading = false }
+        defer {
+            if currentID == imageID {
+                isLoading = false
+            }
+        }
 
         do {
             guard let data = try await selectedItem.loadTransferable(type: Data.self),
                   let image = UIImage(data: data) else {
+                guard currentID == imageID else { return }
                 errorMessage = "Fotoğraf yüklenemedi. Lütfen başka bir fotoğraf seçiniz."
                 return
             }
 
+            guard !Task.isCancelled, currentID == imageID else { return }
             selectedImage = image
+            prepareImage()
         } catch is CancellationError {
             return
         } catch {
+            guard currentID == imageID else { return }
             errorMessage = "Fotoğraf yüklenirken bir hata oluştu. Lütfen tekrar deneyiniz."
         }
     }
@@ -179,13 +214,14 @@ struct ContentView: View {
         ocrTask?.cancel()
 
         let currentID = imageID
+        let currentMode = mode
         isReading = true
         recognizedText = ""
         ocrError = nil
 
         ocrTask = Task {
             do {
-                let text = try await OCR.recognize(selectedImage)
+                let text = try await OCR.recognize(selectedImage, mode: currentMode)
                 guard !Task.isCancelled, currentID == imageID else { return }
 
                 if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -213,6 +249,52 @@ struct ContentView: View {
         recognizedText = ""
         ocrError = nil
         isReading = false
+    }
+
+    @MainActor
+    private func prepareImage() {
+        prepTask?.cancel()
+        prepTask = nil
+        previewImage = nil
+        prepError = nil
+
+        guard let selectedImage else {
+            isPreparing = false
+            return
+        }
+
+        let currentID = imageID
+        let currentMode = mode
+        isPreparing = true
+
+        prepTask = Task {
+            do {
+                let image = try await ImagePrep.process(selectedImage, mode: currentMode)
+                guard !Task.isCancelled, currentID == imageID, currentMode == mode else {
+                    return
+                }
+                previewImage = image
+            } catch is CancellationError {
+                return
+            } catch {
+                guard currentID == imageID, currentMode == mode else { return }
+                prepError = "Görüntü hazırlanırken bir hata oluştu. Lütfen tekrar deneyiniz."
+            }
+
+            guard currentID == imageID, currentMode == mode else { return }
+            isPreparing = false
+        }
+    }
+
+    @MainActor
+    private func resetImageState() {
+        clearRecognition()
+        prepTask?.cancel()
+        prepTask = nil
+        selectedImage = nil
+        previewImage = nil
+        prepError = nil
+        isPreparing = false
     }
 }
 
