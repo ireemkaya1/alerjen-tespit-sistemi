@@ -1,0 +1,414 @@
+{
+  "schemaVersion": 1,
+  "jurisdiction": "TR",
+  "regulation": {
+    "name": "Türk Gıda Kodeksi Gıda Etiketleme ve Tüketicileri Bilgilendirme Yönetmeliği",
+    "section": "Ek-1: Alerjiye veya intoleransa neden olan belirli madde veya ürünler"
+  },
+  "sources": [
+    {
+      "id": "ministry-allergen-overview",
+      "title": "Gıda Etiketlerinde Alerjen Bildirimi",
+      "url": "https://guvenilirgida.tarimorman.gov.tr/Haber/Detay/15071",
+      "note": "Tarım ve Orman Bakanlığının 14 düzenleyici grubu ve sülfit eşiğini özetleyen sayfası."
+    },
+    {
+      "id": "ministry-codex",
+      "title": "Türk Gıda Kodeksi",
+      "url": "https://www.tarimorman.gov.tr/Konular/Gida-Ve-Yem-Hizmetleri/Gida-Hizmetleri/Kodeks",
+      "note": "Tarım ve Orman Bakanlığının gıda kodeksi mevzuat ve kılavuz sayfası."
+    },
+    {
+      "id": "labeling-regulation-annex-1",
+      "title": "Türk Gıda Kodeksi Gıda Etiketleme ve Tüketicileri Bilgilendirme Yönetmeliği",
+      "url": "https://istanbul.tarimorman.gov.tr/BelgelerArsiv/SolMenu/RESM%C4%B0%20GAZETE/GidaEtiketlemeYonetmeligi.pdf",
+      "note": "Ek-1 düzenleyici grup adları, hariç tutulan ürünler ve bunlara bağlı koşullar."
+    }
+  ],
+  "allergens": [
+    {
+      "id": "gluten-cereals",
+      "order": 1,
+      "name": "Gluten İçeren Tahıllar",
+      "regulatoryName": "Gluten içeren tahıllar: buğday, çavdar, arpa, yulaf veya bunların hibrit türleri ve bunların ürünleri",
+      "description": "Bu grup yalnızca mevzuatta sayılan gluten içeren tahılları ve bunlardan üretilen bileşenleri kapsar.",
+      "terms": [
+        { "value": "gluten", "language": "tr", "kind": "group" },
+        { "value": "gluten iceren tahillar", "language": "tr", "kind": "group" },
+        { "value": "gluten containing cereals", "language": "en", "kind": "group" }
+      ],
+      "members": [
+        {
+          "id": "wheat",
+          "name": "Buğday",
+          "scientificName": null,
+          "terms": [
+            { "value": "bugday", "language": "tr", "kind": "ingredient" },
+            { "value": "bugday unu", "language": "tr", "kind": "derivative" },
+            { "value": "bulgur", "language": "tr", "kind": "derivative" },
+            { "value": "irmik", "language": "tr", "kind": "derivative" },
+            { "value": "durum bugdayi", "language": "tr", "kind": "member" },
+            { "value": "kilciksiz bugday", "language": "tr", "kind": "member" },
+            { "value": "spelt", "language": "en", "kind": "member" },
+            { "value": "kamut", "language": "tr", "kind": "member" },
+            { "value": "wheat", "language": "en", "kind": "ingredient" }
+          ]
+        },
+        {
+          "id": "rye",
+          "name": "Çavdar",
+          "scientificName": null,
+          "terms": [
+            { "value": "cavdar", "language": "tr", "kind": "ingredient" },
+            { "value": "cavdar unu", "language": "tr", "kind": "derivative" },
+            { "value": "rye", "language": "en", "kind": "ingredient" }
+          ]
+        },
+        {
+          "id": "barley",
+          "name": "Arpa",
+          "scientificName": null,
+          "terms": [
+            { "value": "arpa", "language": "tr", "kind": "ingredient" },
+            { "value": "arpa unu", "language": "tr", "kind": "derivative" },
+            { "value": "arpa malti", "language": "tr", "kind": "derivative" },
+            { "value": "barley", "language": "en", "kind": "ingredient" }
+          ]
+        },
+        {
+          "id": "oats",
+          "name": "Yulaf",
+          "scientificName": null,
+          "terms": [
+            { "value": "yulaf", "language": "tr", "kind": "ingredient" },
+            { "value": "yulaf unu", "language": "tr", "kind": "derivative" },
+            { "value": "yulaf ezmesi", "language": "tr", "kind": "derivative" },
+            { "value": "oats", "language": "en", "kind": "ingredient" }
+          ]
+        },
+        {
+          "id": "cereal-hybrids",
+          "name": "Hibrit Türler",
+          "scientificName": null,
+          "terms": [
+            { "value": "tritikale", "language": "tr", "kind": "member" },
+            { "value": "triticale", "language": "en", "kind": "member" }
+          ]
+        }
+      ],
+      "exceptions": [
+        { "id": "wheat-glucose-syrup", "description": "Dekstroz dahil buğday bazlı glukoz şurupları", "condition": "Uygulanan proses alerjenite seviyesini artırmadıkça bunlardan elde edilen ürünler." },
+        { "id": "wheat-maltodextrin", "description": "Buğday bazlı maltodekstrinler", "condition": "Uygulanan proses alerjenite seviyesini artırmadıkça bunlardan elde edilen ürünler." },
+        { "id": "barley-glucose-syrup", "description": "Arpa bazlı glukoz şurupları", "condition": null },
+        { "id": "distillate-cereals", "description": "Tarımsal kökenli etil alkol üretimi dahil alkollü içkiler için distilat yapımında kullanılan tahıllar", "condition": null }
+      ],
+      "conditions": [],
+      "sourceIDs": ["ministry-allergen-overview", "ministry-codex", "labeling-regulation-annex-1"]
+    },
+    {
+      "id": "crustaceans",
+      "order": 2,
+      "name": "Kabuklular",
+      "regulatoryName": "Kabuklular (Crustacea) ve bunların ürünleri",
+      "description": "Karides, yengeç, ıstakoz ve kerevit gibi kabukluları kapsar; yumuşakçalar ayrı bir gruptur.",
+      "terms": [
+        { "value": "kabuklular", "language": "tr", "kind": "group" },
+        { "value": "crustacea", "language": "en", "kind": "group" },
+        { "value": "crustaceans", "language": "en", "kind": "group" }
+      ],
+      "members": [
+        { "id": "shrimp", "name": "Karides", "scientificName": null, "terms": [{ "value": "karides", "language": "tr", "kind": "ingredient" }, { "value": "shrimp", "language": "en", "kind": "ingredient" }, { "value": "prawn", "language": "en", "kind": "ingredient" }] },
+        { "id": "crab", "name": "Yengeç", "scientificName": null, "terms": [{ "value": "yengec", "language": "tr", "kind": "ingredient" }, { "value": "crab", "language": "en", "kind": "ingredient" }] },
+        { "id": "lobster", "name": "Istakoz", "scientificName": null, "terms": [{ "value": "istakoz", "language": "tr", "kind": "ingredient" }, { "value": "lobster", "language": "en", "kind": "ingredient" }] },
+        { "id": "crayfish", "name": "Kerevit", "scientificName": null, "terms": [{ "value": "kerevit", "language": "tr", "kind": "ingredient" }, { "value": "crayfish", "language": "en", "kind": "ingredient" }] },
+        { "id": "krill", "name": "Krill", "scientificName": null, "terms": [{ "value": "krill", "language": "tr", "kind": "ingredient" }] }
+      ],
+      "exceptions": [],
+      "conditions": [],
+      "sourceIDs": ["ministry-allergen-overview", "ministry-codex", "labeling-regulation-annex-1"]
+    },
+    {
+      "id": "eggs",
+      "order": 3,
+      "name": "Yumurta",
+      "regulatoryName": "Yumurta ve yumurta ürünleri",
+      "description": "Yumurta ile yumurta akı, sarısı, tozu ve adlandırılmış yumurta proteinlerini ayrı terimler olarak korur.",
+      "terms": [
+        { "value": "yumurta", "language": "tr", "kind": "ingredient" },
+        { "value": "egg", "language": "en", "kind": "ingredient" },
+        { "value": "eggs", "language": "en", "kind": "ingredient" }
+      ],
+      "members": [
+        { "id": "egg-white", "name": "Yumurta Akı", "scientificName": null, "terms": [{ "value": "yumurta aki", "language": "tr", "kind": "derivative" }, { "value": "egg white", "language": "en", "kind": "derivative" }] },
+        { "id": "egg-yolk", "name": "Yumurta Sarısı", "scientificName": null, "terms": [{ "value": "yumurta sarisi", "language": "tr", "kind": "derivative" }, { "value": "egg yolk", "language": "en", "kind": "derivative" }] },
+        { "id": "egg-powder", "name": "Yumurta Tozu", "scientificName": null, "terms": [{ "value": "yumurta tozu", "language": "tr", "kind": "derivative" }, { "value": "egg powder", "language": "en", "kind": "derivative" }] },
+        { "id": "egg-proteins", "name": "Yumurta Proteinleri", "scientificName": null, "terms": [{ "value": "yumurta albumini", "language": "tr", "kind": "protein" }, { "value": "ovalbumin", "language": "tr", "kind": "protein" }, { "value": "ovomukoid", "language": "tr", "kind": "protein" }] }
+      ],
+      "exceptions": [],
+      "conditions": [],
+      "sourceIDs": ["ministry-allergen-overview", "ministry-codex", "labeling-regulation-annex-1"]
+    },
+    {
+      "id": "fish",
+      "order": 4,
+      "name": "Balık",
+      "regulatoryName": "Balık ve balık ürünleri",
+      "description": "Balık ve açıkça balık kaynaklı bileşenleri kapsar; mevzuattaki belirli jelatin kullanımları ayrıca istisna olarak tutulur.",
+      "terms": [
+        { "value": "balik", "language": "tr", "kind": "group" },
+        { "value": "balik urunleri", "language": "tr", "kind": "group" },
+        { "value": "fish", "language": "en", "kind": "group" }
+      ],
+      "members": [
+        { "id": "named-fish", "name": "Yaygın Balık Adları", "scientificName": null, "terms": [{ "value": "hamsi", "language": "tr", "kind": "ingredient" }, { "value": "somon", "language": "tr", "kind": "ingredient" }, { "value": "ton baligi", "language": "tr", "kind": "ingredient" }, { "value": "uskumru", "language": "tr", "kind": "ingredient" }, { "value": "sardalya", "language": "tr", "kind": "ingredient" }, { "value": "alabalik", "language": "tr", "kind": "ingredient" }, { "value": "morina", "language": "tr", "kind": "ingredient" }] },
+        { "id": "fish-derivatives", "name": "Balık Türevleri", "scientificName": null, "terms": [{ "value": "balik jelatini", "language": "tr", "kind": "derivative" }, { "value": "balik yagi", "language": "tr", "kind": "derivative" }, { "value": "fish gelatin", "language": "en", "kind": "derivative" }] }
+      ],
+      "exceptions": [
+        { "id": "gelatin-carrier", "description": "Vitamin veya karotenoid preparatlarında taşıyıcı olarak kullanılan balık jelatini", "condition": null },
+        { "id": "gelatin-fining", "description": "Bira ve şarapta durultma yardımcısı olarak kullanılan balık jelatini veya Isinglass (balık tutkalı)", "condition": null }
+      ],
+      "conditions": [],
+      "sourceIDs": ["ministry-allergen-overview", "ministry-codex", "labeling-regulation-annex-1"]
+    },
+    {
+      "id": "peanuts",
+      "order": 5,
+      "name": "Yer Fıstığı",
+      "regulatoryName": "Yerfıstığı ve yerfıstığı ürünleri",
+      "description": "Yer fıstığı baklagil grubundadır ve Antep fıstığından ayrı bir düzenleyici alerjen grubudur.",
+      "terms": [
+        { "value": "yer fistigi", "language": "tr", "kind": "ingredient" },
+        { "value": "yerfistigi", "language": "tr", "kind": "ingredient" },
+        { "value": "yer fistigi ezmesi", "language": "tr", "kind": "derivative" },
+        { "value": "yer fistigi unu", "language": "tr", "kind": "derivative" },
+        { "value": "yer fistigi yagi", "language": "tr", "kind": "derivative" },
+        { "value": "peanut", "language": "en", "kind": "ingredient" },
+        { "value": "groundnut", "language": "en", "kind": "ingredient" },
+        { "value": "arachis", "language": "en", "kind": "ingredient" }
+      ],
+      "members": [],
+      "exceptions": [],
+      "conditions": [],
+      "sourceIDs": ["ministry-allergen-overview", "ministry-codex", "labeling-regulation-annex-1"]
+    },
+    {
+      "id": "soybeans",
+      "order": 6,
+      "name": "Soya Fasulyesi",
+      "regulatoryName": "Soya fasulyesi ve soya fasulyesi ürünleri",
+      "description": "Soya fasulyesi, yaygın soya gıdaları ve açıkça adlandırılmış soya türevlerini kapsar; mevzuattaki rafine ürün istisnaları ayrıca kaydedilir.",
+      "terms": [
+        { "value": "soya", "language": "tr", "kind": "ingredient" },
+        { "value": "soya fasulyesi", "language": "tr", "kind": "ingredient" },
+        { "value": "soya unu", "language": "tr", "kind": "derivative" },
+        { "value": "soya proteini", "language": "tr", "kind": "protein" },
+        { "value": "soya lesitini", "language": "tr", "kind": "derivative" },
+        { "value": "soya sutu", "language": "tr", "kind": "derivative" },
+        { "value": "soya sosu", "language": "tr", "kind": "derivative" },
+        { "value": "tofu", "language": "tr", "kind": "derivative" },
+        { "value": "tempeh", "language": "tr", "kind": "derivative" },
+        { "value": "soy", "language": "en", "kind": "ingredient" },
+        { "value": "soybean", "language": "en", "kind": "ingredient" }
+      ],
+      "members": [],
+      "exceptions": [
+        { "id": "fully-refined-soy-oil", "description": "Tam rafine soya fasulyesi yağı (katı ve sıvı)", "condition": "Uygulanan proses alerjenite seviyesini artırmadıkça bunlardan elde edilen ürünler." },
+        { "id": "soy-tocopherols", "description": "Soya fasulyesinden elde edilen tokoferollerin (E306) doğal karışımları, doğal D-alfa tokoferol, asetatı ve süksinatı", "condition": null },
+        { "id": "soy-phytosterols", "description": "Soya fasulyesi kaynaklı bitkisel yağlardan elde edilen bitkisel steroller ve bitkisel sterol esterleri", "condition": null },
+        { "id": "soy-stanol-esters", "description": "Soya fasulyesi kaynaklı bitkisel sıvı yağ sterollerinden üretilen bitkisel stanol esterleri", "condition": null }
+      ],
+      "conditions": [],
+      "sourceIDs": ["ministry-allergen-overview", "ministry-codex", "labeling-regulation-annex-1"]
+    },
+    {
+      "id": "milk",
+      "order": 7,
+      "name": "Süt",
+      "regulatoryName": "Süt ve süt ürünleri (laktoz dahil)",
+      "description": "Süt, laktoz, süt proteinleri ve yaygın süt türevlerini birbirinden ayırt edilebilir terimler halinde tutar.",
+      "terms": [
+        { "value": "sut", "language": "tr", "kind": "ingredient" },
+        { "value": "inek sutu", "language": "tr", "kind": "ingredient" },
+        { "value": "keci sutu", "language": "tr", "kind": "ingredient" },
+        { "value": "koyun sutu", "language": "tr", "kind": "ingredient" },
+        { "value": "milk", "language": "en", "kind": "ingredient" }
+      ],
+      "members": [
+        { "id": "milk-powder", "name": "Süt Tozu", "scientificName": null, "terms": [{ "value": "sut tozu", "language": "tr", "kind": "derivative" }, { "value": "yagsiz sut tozu", "language": "tr", "kind": "derivative" }, { "value": "milk powder", "language": "en", "kind": "derivative" }, { "value": "skimmed milk powder", "language": "en", "kind": "derivative" }] },
+        { "id": "whey", "name": "Peynir Altı Suyu", "scientificName": null, "terms": [{ "value": "peynir alti suyu", "language": "tr", "kind": "derivative" }, { "value": "peynir alti suyu tozu", "language": "tr", "kind": "derivative" }, { "value": "whey", "language": "en", "kind": "derivative" }, { "value": "whey powder", "language": "en", "kind": "derivative" }] },
+        { "id": "casein", "name": "Kazein", "scientificName": null, "terms": [{ "value": "kazein", "language": "tr", "kind": "protein" }, { "value": "kazeinat", "language": "tr", "kind": "protein" }, { "value": "casein", "language": "en", "kind": "protein" }, { "value": "caseinate", "language": "en", "kind": "protein" }] },
+        { "id": "lactose", "name": "Laktoz", "scientificName": null, "terms": [{ "value": "laktoz", "language": "tr", "kind": "derivative" }, { "value": "lactose", "language": "en", "kind": "derivative" }] },
+        { "id": "dairy-products", "name": "Süt Ürünleri", "scientificName": null, "terms": [{ "value": "tereyagi", "language": "tr", "kind": "derivative" }, { "value": "krema", "language": "tr", "kind": "derivative" }, { "value": "yogurt", "language": "tr", "kind": "derivative" }, { "value": "peynir", "language": "tr", "kind": "derivative" }, { "value": "butter", "language": "en", "kind": "derivative" }, { "value": "cream", "language": "en", "kind": "derivative" }, { "value": "yoghurt", "language": "en", "kind": "derivative" }, { "value": "cheese", "language": "en", "kind": "derivative" }] }
+      ],
+      "exceptions": [
+        { "id": "whey-distillate", "description": "Tarımsal kökenli etil alkol üretimi dahil alkollü içkiler için distilat yapımında kullanılan peynir altı suyu", "condition": null },
+        { "id": "lactitol", "description": "Laktitol", "condition": null }
+      ],
+      "conditions": [],
+      "sourceIDs": ["ministry-allergen-overview", "ministry-codex", "labeling-regulation-annex-1"]
+    },
+    {
+      "id": "tree-nuts",
+      "order": 8,
+      "name": "Sert Kabuklu Meyveler",
+      "regulatoryName": "Badem, fındık, ceviz, kaju fıstığı, pikan cevizi, Brezilya fındığı, Antep fıstığı, macadamia ve Queensland fındığı ve bunların ürünleri",
+      "description": "Yalnızca mevzuatta sayılan sekiz sert kabuklu meyveyi kapsar. Antep fıstığı bu gruptadır; yer fıstığı değildir.",
+      "terms": [
+        { "value": "sert kabuklu meyveler", "language": "tr", "kind": "group" },
+        { "value": "tree nuts", "language": "en", "kind": "group" }
+      ],
+      "members": [
+        { "id": "almond", "name": "Badem", "scientificName": "Amygdalus communis L.", "terms": [{ "value": "badem", "language": "tr", "kind": "ingredient" }, { "value": "badem unu", "language": "tr", "kind": "derivative" }, { "value": "badem ezmesi", "language": "tr", "kind": "derivative" }, { "value": "almond", "language": "en", "kind": "ingredient" }] },
+        { "id": "hazelnut", "name": "Fındık", "scientificName": "Corylus avellana", "terms": [{ "value": "findik", "language": "tr", "kind": "ingredient" }, { "value": "findik unu", "language": "tr", "kind": "derivative" }, { "value": "findik ezmesi", "language": "tr", "kind": "derivative" }, { "value": "hazelnut", "language": "en", "kind": "ingredient" }] },
+        { "id": "walnut", "name": "Ceviz", "scientificName": "Juglans regia", "terms": [{ "value": "ceviz", "language": "tr", "kind": "ingredient" }, { "value": "walnut", "language": "en", "kind": "ingredient" }] },
+        { "id": "cashew", "name": "Kaju Fıstığı", "scientificName": "Anacardium occidentale", "terms": [{ "value": "kaju", "language": "tr", "kind": "ingredient" }, { "value": "kaju fistigi", "language": "tr", "kind": "ingredient" }, { "value": "cashew", "language": "en", "kind": "ingredient" }] },
+        { "id": "pecan", "name": "Pikan Cevizi", "scientificName": "Carya illinoinensis", "terms": [{ "value": "pikan", "language": "tr", "kind": "ingredient" }, { "value": "pikan cevizi", "language": "tr", "kind": "ingredient" }, { "value": "pecan", "language": "en", "kind": "ingredient" }] },
+        { "id": "brazil-nut", "name": "Brezilya Fındığı", "scientificName": "Bertholletia excelsa", "terms": [{ "value": "brezilya findigi", "language": "tr", "kind": "ingredient" }, { "value": "brazil nut", "language": "en", "kind": "ingredient" }] },
+        { "id": "pistachio", "name": "Antep Fıstığı", "scientificName": "Pistacia vera", "terms": [{ "value": "antep fistigi", "language": "tr", "kind": "ingredient" }, { "value": "sam fistigi", "language": "tr", "kind": "ingredient" }, { "value": "pistachio", "language": "en", "kind": "ingredient" }] },
+        { "id": "macadamia", "name": "Macadamia ve Queensland Fındığı", "scientificName": "Macadamia ternifolia", "terms": [{ "value": "macadamia", "language": "tr", "kind": "ingredient" }, { "value": "makademya", "language": "tr", "kind": "ingredient" }, { "value": "queensland findigi", "language": "tr", "kind": "ingredient" }, { "value": "macadamia nut", "language": "en", "kind": "ingredient" }] }
+      ],
+      "exceptions": [
+        { "id": "tree-nut-distillates", "description": "Tarımsal kökenli etil alkol üretimi dahil alkollü içkiler için distilat yapımında kullanılan sert kabuklu meyveler", "condition": null }
+      ],
+      "conditions": [],
+      "sourceIDs": ["ministry-allergen-overview", "ministry-codex", "labeling-regulation-annex-1"]
+    },
+    {
+      "id": "celery",
+      "order": 9,
+      "name": "Kereviz",
+      "regulatoryName": "Kereviz ve kereviz ürünleri",
+      "description": "Kerevizin kendisini, tohumunu ve açıkça adlandırılmış kereviz türevlerini kapsar.",
+      "terms": [
+        { "value": "kereviz", "language": "tr", "kind": "ingredient" },
+        { "value": "kereviz tohumu", "language": "tr", "kind": "derivative" },
+        { "value": "kereviz tuzu", "language": "tr", "kind": "derivative" },
+        { "value": "celery", "language": "en", "kind": "ingredient" }
+      ],
+      "members": [],
+      "exceptions": [],
+      "conditions": [],
+      "sourceIDs": ["ministry-allergen-overview", "ministry-codex", "labeling-regulation-annex-1"]
+    },
+    {
+      "id": "mustard",
+      "order": 10,
+      "name": "Hardal",
+      "regulatoryName": "Hardal ve hardal ürünleri",
+      "description": "Hardal, hardal tohumu ve açıkça adlandırılmış hardal türevlerini kapsar.",
+      "terms": [
+        { "value": "hardal", "language": "tr", "kind": "ingredient" },
+        { "value": "hardal tohumu", "language": "tr", "kind": "derivative" },
+        { "value": "hardal tozu", "language": "tr", "kind": "derivative" },
+        { "value": "mustard", "language": "en", "kind": "ingredient" }
+      ],
+      "members": [],
+      "exceptions": [],
+      "conditions": [],
+      "sourceIDs": ["ministry-allergen-overview", "ministry-codex", "labeling-regulation-annex-1"]
+    },
+    {
+      "id": "sesame",
+      "order": 11,
+      "name": "Susam",
+      "regulatoryName": "Susam tohumu ve susam tohumu ürünleri",
+      "description": "Susam tohumu ile tahin ve susam yağı gibi açıkça susam kaynaklı bileşenleri kapsar.",
+      "terms": [
+        { "value": "susam", "language": "tr", "kind": "ingredient" },
+        { "value": "susam tohumu", "language": "tr", "kind": "ingredient" },
+        { "value": "tahin", "language": "tr", "kind": "derivative" },
+        { "value": "susam yagi", "language": "tr", "kind": "derivative" },
+        { "value": "sesame", "language": "en", "kind": "ingredient" },
+        { "value": "tahini", "language": "en", "kind": "derivative" }
+      ],
+      "members": [],
+      "exceptions": [],
+      "conditions": [],
+      "sourceIDs": ["ministry-allergen-overview", "ministry-codex", "labeling-regulation-annex-1"]
+    },
+    {
+      "id": "sulfur-dioxide-sulfites",
+      "order": 12,
+      "name": "Kükürt Dioksit ve Sülfitler",
+      "regulatoryName": "Kükürt dioksit ve sülfitler; toplam SO₂ cinsinden 10 mg/kg veya 10 mg/L'den daha fazla olanlar",
+      "description": "Bir sülfit adının görülmesi mevzuat eşiğinin aşıldığını göstermez; değerlendirme toplam SO₂ konsantrasyonu bilgisi gerektirir.",
+      "terms": [
+        { "value": "kukurt dioksit", "language": "tr", "kind": "ingredient" },
+        { "value": "sulfit", "language": "tr", "kind": "ingredient" },
+        { "value": "sulfitler", "language": "tr", "kind": "ingredient" },
+        { "value": "sodyum sulfit", "language": "tr", "kind": "additive" },
+        { "value": "sodyum bisulfit", "language": "tr", "kind": "additive" },
+        { "value": "sodyum metabisulfit", "language": "tr", "kind": "additive" },
+        { "value": "potasyum metabisulfit", "language": "tr", "kind": "additive" },
+        { "value": "kalsiyum sulfit", "language": "tr", "kind": "additive" },
+        { "value": "kalsiyum bisulfit", "language": "tr", "kind": "additive" },
+        { "value": "potasyum bisulfit", "language": "tr", "kind": "additive" },
+        { "value": "e220", "language": "und", "kind": "additive-code" },
+        { "value": "e221", "language": "und", "kind": "additive-code" },
+        { "value": "e222", "language": "und", "kind": "additive-code" },
+        { "value": "e223", "language": "und", "kind": "additive-code" },
+        { "value": "e224", "language": "und", "kind": "additive-code" },
+        { "value": "e226", "language": "und", "kind": "additive-code" },
+        { "value": "e227", "language": "und", "kind": "additive-code" },
+        { "value": "e228", "language": "und", "kind": "additive-code" },
+        { "value": "sulfur dioxide", "language": "en", "kind": "ingredient" },
+        { "value": "sulphites", "language": "en", "kind": "ingredient" }
+      ],
+      "members": [],
+      "exceptions": [],
+      "conditions": [
+        {
+          "id": "total-so2-threshold",
+          "type": "threshold",
+          "description": "Tüketime hazır veya üretici talimatına göre hazırlanmış üründe toplam SO₂ konsantrasyonu 10 mg/kg veya 10 mg/L'den fazla olmalıdır. Yalnızca terim bulunması konsantrasyonun aşıldığını kanıtlamaz.",
+          "basis": "total_so2",
+          "comparison": "greater_than",
+          "value": 10,
+          "units": ["mg/kg", "mg/L"]
+        }
+      ],
+      "sourceIDs": ["ministry-allergen-overview", "ministry-codex", "labeling-regulation-annex-1"]
+    },
+    {
+      "id": "lupin",
+      "order": 13,
+      "name": "Acı Bakla",
+      "regulatoryName": "Acı bakla ve acı bakla ürünleri",
+      "description": "Acı bakla (lupin) ve açıkça adlandırılmış un veya protein gibi türevlerini kapsar.",
+      "terms": [
+        { "value": "aci bakla", "language": "tr", "kind": "ingredient" },
+        { "value": "lupin", "language": "tr", "kind": "ingredient" },
+        { "value": "lupin unu", "language": "tr", "kind": "derivative" },
+        { "value": "lupin proteini", "language": "tr", "kind": "protein" },
+        { "value": "lupine", "language": "en", "kind": "ingredient" }
+      ],
+      "members": [],
+      "exceptions": [],
+      "conditions": [],
+      "sourceIDs": ["ministry-allergen-overview", "ministry-codex", "labeling-regulation-annex-1"]
+    },
+    {
+      "id": "molluscs",
+      "order": 14,
+      "name": "Yumuşakçalar",
+      "regulatoryName": "Yumuşakçalar ve ürünleri",
+      "description": "Midye, istiridye, kalamar, ahtapot ve benzeri yumuşakçaları kapsar; kabuklular ayrı bir gruptur.",
+      "terms": [
+        { "value": "yumusakca", "language": "tr", "kind": "group" },
+        { "value": "yumusakcalar", "language": "tr", "kind": "group" },
+        { "value": "molluscs", "language": "en", "kind": "group" }
+      ],
+      "members": [
+        { "id": "mussel", "name": "Midye", "scientificName": null, "terms": [{ "value": "midye", "language": "tr", "kind": "ingredient" }, { "value": "mussel", "language": "en", "kind": "ingredient" }] },
+        { "id": "oyster", "name": "İstiridye", "scientificName": null, "terms": [{ "value": "istiridye", "language": "tr", "kind": "ingredient" }, { "value": "oyster", "language": "en", "kind": "ingredient" }] },
+        { "id": "squid", "name": "Kalamar", "scientificName": null, "terms": [{ "value": "kalamar", "language": "tr", "kind": "ingredient" }, { "value": "squid", "language": "en", "kind": "ingredient" }] },
+        { "id": "octopus", "name": "Ahtapot", "scientificName": null, "terms": [{ "value": "ahtapot", "language": "tr", "kind": "ingredient" }, { "value": "octopus", "language": "en", "kind": "ingredient" }] },
+        { "id": "scallop", "name": "Deniz Tarağı", "scientificName": null, "terms": [{ "value": "deniz taragi", "language": "tr", "kind": "ingredient" }, { "value": "scallop", "language": "en", "kind": "ingredient" }] },
+        { "id": "snail", "name": "Salyangoz", "scientificName": null, "terms": [{ "value": "salyangoz", "language": "tr", "kind": "ingredient" }, { "value": "snail", "language": "en", "kind": "ingredient" }] }
+      ],
+      "exceptions": [],
+      "conditions": [],
+      "sourceIDs": ["ministry-allergen-overview", "ministry-codex", "labeling-regulation-annex-1"]
+    }
+  ]
+}
