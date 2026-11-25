@@ -8,9 +8,10 @@
 import SwiftUI
 import PhotosUI
 
-private enum TextResult: Identifiable {
+private enum TextResult: Identifiable, Hashable {
     case raw
     case normalized
+    case allergen(String)
 
     var id: Self { self }
 
@@ -20,6 +21,8 @@ private enum TextResult: Identifiable {
             return "Tanınan Ham Metin"
         case .normalized:
             return "Normalize Edilmiş Metin"
+        case .allergen:
+            return "Alerjen Kanıtı"
         }
     }
 }
@@ -41,6 +44,12 @@ struct ContentView: View {
     @State private var ocrTask: Task<Void, Never>?
     @State private var prepTask: Task<Void, Never>?
     @State private var activeResult: TextResult?
+    @State private var detections: [AllergenDetection] = []
+    @State private var detectionError = false
+
+    private static let detector = Result {
+        try AllergenDetector(catalog: AllergenStore.load().catalog)
+    }
 
     var body: some View {
         GeometryReader { geometry in
@@ -123,6 +132,7 @@ struct ContentView: View {
                             resultRow(.raw)
                             resultRow(.normalized)
                         }
+                        allergenResults
                     }
 
                     Spacer()
@@ -139,7 +149,75 @@ struct ContentView: View {
             prepareImage()
         }
         .sheet(item: $activeResult) { result in
-            resultSheet(result)
+            if case .allergen(let id) = result {
+                if let detection = detections.first(where: { $0.id == id }) {
+                    evidenceSheet(detection)
+                }
+            } else {
+                resultSheet(result)
+            }
+        }
+    }
+
+    private var allergenResults: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Alerjen Tespit Sonuçları")
+                .font(.headline)
+                .accessibilityAddTraits(.isHeader)
+
+            if detectionError {
+                Text("Alerjen incelemesi başlatılamadı.")
+                    .foregroundStyle(.secondary)
+            } else if detections.isEmpty {
+                Text("Okunan metinde eşleşen alerjen kanıtı bulunamadı.")
+                    .foregroundStyle(.secondary)
+            }
+
+            ForEach(detections) { detection in
+                Button {
+                    activeResult = .allergen(detection.id)
+                } label: {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(detection.name).fontWeight(.semibold)
+                            Text(detection.summary)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(14)
+                    .contentShape(Rectangle())
+                    .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func evidenceSheet(_ detection: AllergenDetection) -> some View {
+        NavigationStack {
+            List(detection.evidence) { evidence in
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(evidence.classification.title).font(.headline)
+                    Text("Eşleşen terim: \(evidence.term)")
+                    Text(evidence.context).textSelection(.enabled)
+                    Text(evidence.reason).foregroundStyle(.secondary)
+                    if evidence.sulfiteThreshold == .unresolved {
+                        Text("Mevzuat eşiği: Belirsiz").foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .navigationTitle(detection.name)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Kapat") { activeResult = nil }
+                }
+            }
         }
     }
 
@@ -198,6 +276,8 @@ struct ContentView: View {
             return rawText
         case .normalized:
             return normalizedText
+        case .allergen:
+            return ""
         }
     }
 
@@ -279,6 +359,8 @@ struct ContentView: View {
         isReading = true
         rawText = ""
         normalizedText = ""
+        detections = []
+        detectionError = false
         activeResult = nil
         ocrError = nil
 
@@ -292,6 +374,12 @@ struct ContentView: View {
                 } else {
                     rawText = text
                     normalizedText = TextPrep.normalize(text)
+                    switch Self.detector {
+                    case .success(let detector):
+                        detections = detector.detect(in: normalizedText)
+                    case .failure:
+                        detectionError = true
+                    }
                 }
             } catch is CancellationError {
                 return
@@ -312,6 +400,8 @@ struct ContentView: View {
         imageID = UUID()
         rawText = ""
         normalizedText = ""
+        detections = []
+        detectionError = false
         activeResult = nil
         ocrError = nil
         isReading = false
