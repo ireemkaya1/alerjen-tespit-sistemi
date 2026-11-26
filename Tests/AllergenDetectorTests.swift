@@ -139,4 +139,96 @@ expect(contradiction?.summary == "İçeriyor · Çelişkili beyan" &&
 let differentMembers = inspect("icindekiler: badem. findik icermez.").first
 expect(differentMembers?.hasConflictingEvidence == false, "different nut members are not contradictory")
 
-print("PASS: detector cases A–I, coordinated-context cases A–D, and additional regression checks")
+for claim in [
+    "alarjen uyarisi:gluten icermez.",
+    "alarjen uyarisi: gluten icermez.",
+    "alerjen uyarisi:gluten icermez.",
+    "alerjen uyarisi: gluten icermez.",
+    "uyari - gluten icermez.",
+    "glutensiz.",
+    "glutensizdir",
+    "gluten free",
+    "bu urun glutensiz",
+    "this product is gluten free."
+] {
+    let groups = inspect(claim)
+    expect(groups.map(\.groupID) == ["gluten-cereals"] &&
+           groups.first?.evidence.map(\.classification) == [.negativeClaim] &&
+           groups.first?.summary == "İçermediği beyan ediliyor", "gluten negative claim: \(claim)")
+}
+
+for claim in ["glutensiz fabrika", "gluten free factory"] {
+    expect(evidence(inspect(claim), "gluten-cereals").map(\.classification) == [.unresolved],
+           "ambiguous gluten claim: \(claim)")
+}
+
+for (claim, group) in [
+    ("sut icermez", "milk"),
+    ("sut icermiyor", "milk"),
+    ("yer fistigi icermemektedir", "peanuts")
+] {
+    expect(evidence(inspect(claim), group).map(\.classification) == [.negativeClaim],
+           "negative predicate: \(claim)")
+}
+
+let glutenConflict = inspect("icindekiler: bugday unu (gluten icerir). gluten icermez.").first
+expect(glutenConflict?.groupID == "gluten-cereals" &&
+       glutenConflict.map { Set($0.evidence.map(\.classification)) } == [.contains, .negativeClaim] &&
+       glutenConflict?.summary == "İçeriyor · Çelişkili beyan", "opposing gluten declarations")
+
+let storage = inspect("ambalaj acildiktan sonra gluten iceren urunlerle ayni ortamda muhafaza etmeyiniz.")
+expect(evidence(storage, "gluten-cereals").map(\.classification) == [.unresolved],
+       "storage mention does not assert gluten")
+
+for predicate in ["icerir", "icermektedir"] {
+    let items = inspect("yumurta, badem ve findik \(predicate).").flatMap(\.evidence)
+    expect(Set(items.map(\.term)) == ["yumurta", "badem", "findik"] &&
+           items.allSatisfy { $0.classification == .contains }, "Biscotti A: positive list with \(predicate)")
+}
+
+for label in [
+    "yumurta, badem ve kukurt dioksit icerir, iz miktarda susam ve findik icerebilir.",
+    "yumurta,\nbadem ve kukurt dioksit icerir,\niz miktarda susam ve\nfindik icerebilir.",
+    "icindekiler: yumurta,\nbadem ve kukurt dioksit icerir,\niz miktarda susam ve findik icerebilir."
+] {
+    let items = inspect(label).flatMap(\.evidence)
+    let positive: Set<String> = ["yumurta", "badem", "kukurt dioksit"]
+    let precaution: Set<String> = ["susam", "findik"]
+    expect(Set(items.filter { $0.classification == .contains }.map(\.term)) == positive &&
+           Set(items.filter { $0.classification == .mayContain }.map(\.term)) == precaution,
+           "Biscotti B/C: positive and precautionary scopes")
+    expect(items.first(where: { $0.term == "kukurt dioksit" })?.sulfiteThreshold == .unresolved,
+           "Biscotti B/C: sulfite presence claim does not establish its threshold")
+    expect(items.allSatisfy { (label as NSString).substring(with: $0.range) == $0.term },
+           "Biscotti B/C: preserve evidence ranges")
+}
+
+for label in [
+    "yumurta, badem ve kukurt doksit icerir, iz miktarda stisam, f ... findik ...",
+    "yumurta, badem ve\nkukurt doksit icermektedir, iz miktarda stisam, findik icerebilir.",
+    "yumurta, badem ve kukurt doksit icerir, iz miktarda stisam icerebilir."
+] {
+    let items = inspect(label).flatMap(\.evidence)
+    expect(Set(items.filter { $0.classification == .contains }.map(\.term)) == ["yumurta", "badem"],
+           "Biscotti OCR: exact positives survive an unreadable final item")
+    expect(Set(items.map(\.term)).isSubset(of: ["yumurta", "badem", "findik"]) &&
+           items.filter { $0.term == "findik" }.allSatisfy { $0.classification == .unresolved },
+           "Biscotti OCR: unknown terms stay unmatched and unclear precaution stays unresolved")
+}
+
+let recoveredWarning = inspect("yumurta, badem ve kukurt doksit icerir, iz miktarda findik icerebilir.")
+expect(evidence(recoveredWarning, "tree-nuts").first(where: { $0.term == "findik" })?.classification == .mayContain,
+       "Biscotti OCR: independently readable precaution")
+
+for label in [
+    "gluten intoleransi olan bireyler icin uygundur.",
+    "ambalaj acildiktan sonra gluten iceren urunlerle ayni ortamda muhafaza etmeyiniz.",
+    "badem ve yumurta aromali biscotti",
+    "yumurta, badem ve ambalaj bilgisi icerir."
+] {
+    let items = inspect(label).flatMap(\.evidence)
+    expect(!items.isEmpty && items.allSatisfy { $0.classification == .unresolved },
+           "Biscotti D/E and ambiguous context: \(label)")
+}
+
+print("PASS: original detector and coordinated-context, negative-claim, and Biscotti regression checks")

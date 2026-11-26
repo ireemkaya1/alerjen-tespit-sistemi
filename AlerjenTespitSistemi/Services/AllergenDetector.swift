@@ -18,9 +18,14 @@ struct AllergenDetector {
     private let entries: [String: [Entry]]
     private let matcher: NSRegularExpression
 
-    private static let predicate = #"\b(?:icerebilir|icermektedir|icerir|icermez|icermemektedir)\b"#
+    private static let negativePredicates = ["icermez", "icermiyor", "icermemektedir"]
+    private static let positivePredicates = ["icermektedir", "icerir"]
+    private static let predicate = #"\b(?:"# +
+        (negativePredicates + positivePredicates + ["icerebilir"]).joined(separator: "|") + #")\b"#
+    private static let glutenFreeClaims = ["glutensiz", "glutensizdir", "gluten free"]
     private static let trace = #"\b(?:eser|iz) miktarda\b"#
-    private static let headings = #"\b(?:icindekiler|bilesenler|alerjen uyarisi|alerjen bilgisi|besin degeri|besin degerleri|beslenme bildirimi|besin ogeleri|enerji ve besin ogeleri|saklama kosullari|saklama talimati|muhafaza kosullari|kullanim talimati|uretici firma|uretici bilgileri|gida isletmecisi|mense ulke|ingredients|allergen information|nutrition facts)\b[ \t]*:?|\b(?:alerjenler|alerjen|uretici|storage)[ \t]*:"#
+    private static let shortItem = #"\p{L}+(?:\s+\p{L}+)?"#
+    private static let headings = #"\bal[ae]rjen uyarisi\b[ \t]*[:–—-]?|\buyari[ \t]*[:–—-]|\b(?:icindekiler|bilesenler|alerjen bilgisi|besin degeri|besin degerleri|beslenme bildirimi|besin ogeleri|enerji ve besin ogeleri|saklama kosullari|saklama talimati|muhafaza kosullari|kullanim talimati|uretici firma|uretici bilgileri|gida isletmecisi|mense ulke|ingredients|allergen information|nutrition facts)\b[ \t]*:?|\b(?:alerjenler|alerjen|uretici|storage)[ \t]*:"#
     private static let sectionBoundary = headings + #"|[\n;!?]|(?<![0-9])\.|\.(?![0-9])"#
     private static let unrelated = #"\b(?:ambalaj|muhafaza|saklayiniz|saklama|tuketiniz|intoleransi|uygundur|urunlerle|aromali|aromasi)\b"#
     private static let qualifiers = [
@@ -46,7 +51,7 @@ struct AllergenDetector {
             }
         }
         if let gluten = catalog.allergens.first(where: { $0.id == "gluten-cereals" }) {
-            for term in ["glutensiz", "glutensizdir"] {
+            for term in Self.glutenFreeClaims {
                 terms.append(Entry(groupID: gluten.id, name: gluten.name, memberID: nil,
                                    term: term, isCategory: true, needsContext: false))
             }
@@ -87,7 +92,7 @@ struct AllergenDetector {
         for (index, boundary) in boundaries.enumerated() {
             let before = NSRange(location: cursor, length: boundary.range.location - cursor)
             let label = input.substring(with: boundary.range).trimmingCharacters(in: .whitespaces)
-            if label == "\n", !ingredients {
+            if label == "\n" {
                 let nextStart = NSMaxRange(boundary.range)
                 let nextEnd = index + 1 < boundaries.count ? boundaries[index + 1].range.location : input.length
                 let left = input.substring(with: before)
@@ -132,12 +137,19 @@ struct AllergenDetector {
         let leftLine = left.components(separatedBy: "\n").last ?? ""
         let leftSource = leftLine as NSString
         let rightSource = right as NSString
-        guard let last = matcher.matches(in: leftLine, range: NSRange(location: 0, length: leftSource.length)).last,
-              let first = matcher.firstMatch(in: right, range: NSRange(location: 0, length: rightSource.length)) else {
+        guard let last = matcher.matches(in: leftLine, range: NSRange(location: 0, length: leftSource.length)).last else {
             return false
         }
 
         let trailing = leftSource.substring(from: NSMaxRange(last.range)).trimmingCharacters(in: .whitespaces)
+        let positive = #"\b(?:"# + Self.positivePredicates.joined(separator: "|") + #")\b"#
+        if ["ve", ", ve"].contains(trailing),
+           !Self.matches(#"^\s*"# + Self.shortItem + #"\s+"# + positive, in: right).isEmpty {
+            return true
+        }
+        guard let first = matcher.firstMatch(in: right, range: NSRange(location: 0, length: rightSource.length)) else {
+            return false
+        }
         let leading = rightSource.substring(to: first.range.location).trimmingCharacters(in: .whitespaces)
         let joiners = [",", "ve", "veya", ", ve", ", veya"]
         // Preserve the original newline and offsets. Only an explicit joiner can bridge it.
@@ -202,12 +214,13 @@ struct AllergenDetector {
         if entry.groupID == nil {
             return (unresolved, .mention, "İfade fıstığın türünü belirtmiyor.", nil)
         }
-        if entry.term == "glutensiz" || entry.term == "glutensizdir" {
+        if entry.groupID == "gluten-cereals", Self.glutenFreeClaims.contains(entry.term) {
             let claim = local.trimmingCharacters(in: .whitespacesAndNewlines)
-            if claim == entry.term {
+            let productPrefixes = ["", "bu urun ", "urun ", "this product is "]
+            if productPrefixes.contains(where: { claim == $0 + entry.term }) {
                 return (.negativeClaim, .explicitStatement, "Gluten için açık bir yokluk beyanı var.", nil)
             }
-            return (unresolved, .mention, "Glutensiz ifadesinin ürüne ait açık bir beyan olduğu doğrulanamadı.", nil)
+            return (unresolved, .mention, "Gluten yokluğu ifadesinin ürüne ait açık bir beyan olduğu doğrulanamadı.", nil)
         }
         let claim = Self.linkedClaim(for: hit, hits: hits, predicates: predicates, in: source)
         if entry.groupID == "sulfur-dioxide-sulfites" {
@@ -224,6 +237,9 @@ struct AllergenDetector {
             let reason = threshold == .atOrBelow
                 ? "Belirtilen toplam SO₂, bildirim eşiğini aşmıyor."
                 : "Sülfit adı veya E kodu bulundu. Tüketime hazır ürünün toplam SO₂ konsantrasyonu doğrulanamadı."
+            if claim == .contains {
+                return (.contains, .explicitStatement, "Etikette sülfit bulunduğu beyan ediliyor. " + reason, threshold)
+            }
             return (unresolved, .mention, reason, threshold)
         }
         if let claim {
@@ -238,7 +254,7 @@ struct AllergenDetector {
         }
         if ingredients, predicates.isEmpty, !entry.isCategory, !entry.needsContext,
            Self.matches(Self.trace + "|" + Self.unrelated +
-                        #"|\b(?:free|without|vegan|bitkisel|glutensiz|icermeyen|icermiyor|bulunmaz|yok|yoktur)\b"#,
+                        #"|\b(?:free|without|vegan|bitkisel|glutensiz|icermeyen|bulunmaz|yok|yoktur)\b"#,
                         in: local).isEmpty,
            !Self.needsExceptionReview(entry, in: local) {
             return (.contains, .ingredientList, "Terim, belirlenen içindekiler bölümünde bileşen olarak geçiyor.", nil)
@@ -259,33 +275,61 @@ struct AllergenDetector {
             with: NSRange(location: previousEnd, length: end - previousEnd)
         ))
         // Remove only whole matched terms. What remains must look like a declaration list.
-        let positions = Set(hits.map(\.range)).sorted { $0.location > $1.location }
-        for range in positions where range.location >= previousEnd && NSMaxRange(range) <= end {
+        let positions = Set(hits.map(\.range)).filter {
+            $0.location >= previousEnd && NSMaxRange($0) <= end
+        }.sorted { $0.location < $1.location }
+        for range in positions.reversed() {
             list.replaceCharacters(in: NSRange(location: range.location - previousEnd, length: range.length),
                                    with: " ")
         }
         let remaining = list as String
         let allowed = #"\b(?:bu urun|urun|alerjenler|veya|ve|ancak|fakat|eser miktarda|iz miktarda)\b|[\s,:()/]"#
-        guard remaining.replacingOccurrences(of: allowed, with: "", options: .regularExpression).isEmpty else {
+        let word = source.substring(with: next.range)
+        let allItemsRecognized = remaining.replacingOccurrences(of: allowed, with: "", options: .regularExpression).isEmpty
+        guard allItemsRecognized || (
+            positivePredicates.contains(word) &&
+            hasRecognizedListBeforeUnknown(positions, start: previousEnd, end: end, in: source)
+        ) else {
             return nil
         }
         let tail = source.substring(from: NSMaxRange(next.range))
-        guard matches(#"\b(?:eger|halinde|durumunda)\b"#, in: tail).isEmpty else { return nil }
-        if let following = predicates.first(where: { $0.range.location > next.range.location }),
-           !hits.contains(where: {
-               $0.range.location >= NSMaxRange(next.range) && NSMaxRange($0.range) <= following.range.location
-           }) {
-            return nil
+        let startsNewTraceClause = !matches(#"^[\s)]*(?:,|\b(?:ve|ancak|fakat)\b)\s*"# + trace, in: tail).isEmpty
+        if !startsNewTraceClause {
+            guard matches(#"\b(?:eger|halinde|durumunda)\b"#, in: tail).isEmpty else { return nil }
+            if let following = predicates.first(where: { $0.range.location > next.range.location }),
+               !hits.contains(where: {
+                   $0.range.location >= NSMaxRange(next.range) && NSMaxRange($0.range) <= following.range.location
+               }) {
+                return nil
+            }
         }
         guard tail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
             !matches(#"^[\s)]*(?:$|,|\b(?:ve|ancak|fakat)\b)"#, in: tail).isEmpty ||
             predicates.contains(where: { $0.range.location > next.range.location }) else {
             return nil
         }
-        let word = source.substring(with: next.range)
-        if word == "icermez" || word == "icermemektedir" { return .negativeClaim }
+        if negativePredicates.contains(word) { return .negativeClaim }
         if word == "icerebilir" || !matches(trace, in: remaining).isEmpty { return .mayContain }
         return .contains
+    }
+
+    private static func hasRecognizedListBeforeUnknown(
+        _ terms: [NSRange], start: Int, end: Int, in source: NSString
+    ) -> Bool {
+        guard terms.count >= 2, let first = terms.first, let last = terms.last else { return false }
+        let prefix = source.substring(with: NSRange(location: start, length: first.location - start))
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard ["", "bu urun", "urun"].contains(prefix) else { return false }
+        for (left, right) in zip(terms, terms.dropFirst()) {
+            let gap = source.substring(with: NSRange(location: NSMaxRange(left), length: right.location - NSMaxRange(left)))
+            guard !matches(#"^\s*(?:,\s*(?:ve\s+)?|\bve\s+)$"#, in: gap).isEmpty else { return false }
+        }
+        // One short, explicitly conjoined item may be unreadable. Only exact hits get evidence.
+        let tail = source.substring(with: NSRange(location: NSMaxRange(last), length: end - NSMaxRange(last)))
+        guard let match = matches(#"^\s*,?\s+ve\s+("# + shortItem + #")\s*$"#, in: tail).first else { return false }
+        let unknown = (tail as NSString).substring(with: match.range(at: 1))
+        return matches(trace + "|" + unrelated + #"|\b(?:eger|halinde|durumunda|degil|yok|olabilir|bitkisel|ve|veya)\b"#,
+                       in: unknown).isEmpty
     }
 
     private static func needsExceptionReview(_ entry: Entry, in text: String) -> Bool {
